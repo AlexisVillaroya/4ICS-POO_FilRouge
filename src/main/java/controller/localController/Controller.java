@@ -9,6 +9,7 @@ import gui.View;
 import model.BoardGame;
 import model.Coord;
 import model.ModelConfig;
+import nutsAndBolts.GameStatus;
 import javafx.event.EventHandler;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -61,7 +62,9 @@ public class Controller implements Mediator, BoardGame<Integer>, EventHandler<Mo
 	
 	public void setView(View view) {
 		this.view = view;
+		
 	}
+	
 	public void setModel(BoardGame<Coord> model) {
 		this.model =  model;
 	}
@@ -156,12 +159,16 @@ public class Controller implements Mediator, BoardGame<Integer>, EventHandler<Mo
 			if (outputModelData.isMoveDone && this.view != null) {
 				
 				
-				inputViewData = new InputViewData<Integer>(
-						toMovePieceIndex, 
-						targetSquareIndex, 
-						transformCoordToIndex(outputModelData.capturedPieceCoord), 
-						transformCoordToIndex(outputModelData.promotedPieceCoord), 
-						outputModelData.promotedPieceColor);
+	            inputViewData = new InputViewData<Integer>(
+	                    toMovePieceIndex, 
+	                    targetSquareIndex, 
+	                    transformCoordToIndex(outputModelData.capturedPieceCoord), 
+	                    transformCoordToIndex(outputModelData.promotedPieceCoord), 
+	                    outputModelData.promotedPieceColor,
+	                    outputModelData.currentPlayerColor,
+	                    outputModelData.whiteScore,
+	                    outputModelData.blackScore,
+	                    outputModelData.gameStatus);
 				
 				this.view.actionOnGui(inputViewData);
 			}
@@ -194,6 +201,4 @@ public class Controller implements Mediator, BoardGame<Integer>, EventHandler<Mo
 		}
 		return squareIndex;
 	}
-
-	
 }

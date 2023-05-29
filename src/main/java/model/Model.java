@@ -4,6 +4,7 @@ package model;
 import java.util.List;
 
 import controller.OutputModelData;
+import nutsAndBolts.GameStatus;
 import nutsAndBolts.PieceSquareColor;
 
 /**
@@ -31,22 +32,20 @@ import nutsAndBolts.PieceSquareColor;
 public class Model implements BoardGame<Coord> {
 
 	private PieceSquareColor currentGamerColor;	// couleur du joueur courant
- 
+	private int whitePlayerScore; // score du joueur blanc
+	private int blackPlayerScore; // score du joueur noir
+
 	private ModelImplementor implementor;		// Cet objet sait communiquer avec les PieceModel
 
 	public Model() {
 		super();
 		this.implementor = new ModelImplementor();
 		this.currentGamerColor = ModelConfig.BEGIN_COLOR;
+		this.whitePlayerScore = 0; // initialise le score du joueur blanc à 0
+		this.blackPlayerScore = 0; // initialise le score du joueur noir à 0
 
 		System.out.println(this);
 	}
-
-	@Override
-	public String toString() {
-		return implementor.toString();
-	}
-
 
 
 	/**
@@ -90,15 +89,11 @@ public class Model implements BoardGame<Coord> {
 					
 					// S'il n'y a pas eu de prise
 					// ou si une rafle n'est pas possible alors changement de joueur 
-					if (true) {	// TODO : Test � changer atelier 4
-						 // Remplacer cette ligne par une vérification de rafle possible
-						System.out.println("RAFLE POSSIBLE : " + isRaflePossible(targetSquareCoord));
-				        System.out.println("CURRENT PLAYER : " + this.currentGamerColor);
-			            if (!isRaflePossible(targetSquareCoord) || toCapturePieceCoord == null) {
-			                this.switchGamer();
-			            }
-					}
-
+					System.out.println("RAFLE POSSIBLE : " + isRaflePossible(targetSquareCoord));
+			        System.out.println("CURRENT PLAYER : " + this.currentGamerColor);
+		            if (!isRaflePossible(targetSquareCoord) || toCapturePieceCoord == null) {
+		                this.switchGamer();
+		            }
 				}
 			}
 		}
@@ -109,7 +104,11 @@ public class Model implements BoardGame<Coord> {
 				isMoveDone, 
 				toCapturePieceCoord, 
 				toPromotePieceCoord, 
-				toPromotePieceColor);
+				toPromotePieceColor,
+				getCurrentPlayerColor(),
+				getWhitePlayerScore(),
+				getBlackPlayerScore(),
+				checkGameStatus());
 
 		return outputModelData;
 
@@ -225,6 +224,16 @@ public class Model implements BoardGame<Coord> {
 	 * Suppression effective de la pi�ce captur�e
 	 */
 	private void remove(Coord toCapturePieceCoord) {
+		if (toCapturePieceCoord != null) {
+			// si la couleur de la pièce capturée est blanche, alors le joueur noir marque un point
+			if (this.implementor.getPieceColor(toCapturePieceCoord) == PieceSquareColor.WHITE) {
+				this.blackPlayerScore += 1;
+			}
+			// sinon, le joueur blanc marque un point
+			else {
+				this.whitePlayerScore += 1;
+			}
+		}
 		this.implementor.removePiece(toCapturePieceCoord);
 	}
 
@@ -243,40 +252,72 @@ public class Model implements BoardGame<Coord> {
 	private void promotePiece(Coord targetSquareCoord) {
 		this.implementor.promotePiece(targetSquareCoord);
 	}
+	
+	private PieceSquareColor getCurrentPlayerColor() {
+		return this.currentGamerColor;
+	}
+	
+	public int getWhitePlayerScore() {
+		return this.whitePlayerScore;
+	}
+
+	public int getBlackPlayerScore() {
+		return this.blackPlayerScore;
+	}
 
 	private void switchGamer() {
             this.currentGamerColor = (PieceSquareColor.WHITE).equals(this.currentGamerColor) ?
                     PieceSquareColor.BLACK : PieceSquareColor.WHITE;
+			System.out.println("SWITCH GAMER TO : " + this.currentGamerColor);
+
     }
 	
-	
 	/**
-	 * Checks if a rafle (multi-jump) is possible for a piece at a given coordinate.
+	 * Vérifie si une rafle (saut multiple) est possible pour une pièce à une coordonnée donnée.
 	 *
-	 * @param pieceCoord The coordinate of the piece to check.
-	 * @return true if a rafle is possible, false otherwise.
+	 * @param pieceCoord La coordonnée de la pièce à vérifier.
+	 * @return true si une rafle est possible, false sinon.
 	 */
 	private boolean isRaflePossible(Coord pieceCoord) {
-	    // If the piece at the specified coordinates is not of the current player's color, return false.
+	    // Si la pièce aux coordonnées spécifiées n'est pas de la couleur du joueur actuel, retourne false.
 	    if (this.implementor.getPieceColor(pieceCoord) != this.currentGamerColor) {
 	        return false;
 	    }
-	    
-	    // Get the possible coordinates for a rafle (a jump of two squares in any direction).
+
+	    // Obtient les coordonnées cibles pour une rafle (un saut de deux cases dans n'importe quelle direction).
 	    List<Coord> targetCoords = this.implementor.getTargetCoordsInMultiJumpCase(pieceCoord);
 	    System.out.println(targetCoords);
-	    
-	    // For each target coordinate, check if it's possible to perform a rafle there.
+
+	    // Pour chaque coordonnée cible, vérifie s'il est possible d'effectuer une rafle.
 	    for (Coord targetCoord : targetCoords) {
-	        // If moving to the target coordinate is possible and there is a piece of the opposite color on the square to jump over, return true.
 	        Coord captureCoord = this.getToCapturePieceCoord(pieceCoord, targetCoord);
-	        if (this.isMovePiecePossible(pieceCoord, targetCoord, true) && captureCoord != null && this.implementor.getPieceColor(captureCoord) != this.currentGamerColor) {
+
+	        // Vérifie si le déplacement vers la coordonnée cible est possible et s'il y a une pièce de couleur opposée sur la case à sauter.
+	        if (this.isPieceMoveable(pieceCoord, targetCoord) &&
+	            this.isThereMaxOnePieceOnItinerary(pieceCoord, targetCoord) &&
+	            this.isMovePiecePossible(pieceCoord, targetCoord, true) &&
+	            captureCoord != null &&
+	            this.implementor.getPieceColor(captureCoord) != this.currentGamerColor) {
 	            return true;
 	        }
 	    }
-	    
-	    // If none of the possible moves results in a rafle, return false.
+
+	    // Si aucune des mouvements possibles ne résulte en une rafle, retourne false.
 	    return false;
+	}
+	
+	/**
+	 * Vérifie l'état du jeu
+	 *
+	 * @return retourne l'état du jeu
+	 */
+	public GameStatus checkGameStatus() {
+	    if (this.implementor.hasNoPieces(PieceSquareColor.WHITE)) {
+	        return GameStatus.BLACK_WIN;
+	    } else if (this.implementor.hasNoPieces(PieceSquareColor.BLACK)) {
+	        return GameStatus.WHITE_WIN;
+	    } 
+	    return GameStatus.ONGOING;
 	}
 
 }

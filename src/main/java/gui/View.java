@@ -1,107 +1,121 @@
 package gui;
 
 import controller.InputViewData;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
-
-/**
- * @author francoise.perrin
- * 
- * Cette classe est la fen�tre du jeu de dames
- * Elle d�l�gue a un objet Board la gestion de l'affichage du damier
- * et affiche les axes le long du damier
- * 
- */
+import javafx.scene.layout.VBox;
+import nutsAndBolts.GameStatus;
+import nutsAndBolts.PieceSquareColor;
 
 public class View extends BorderPane {
 
-	// le damier compos� de carr�s noirs et blancs
-	// sur lesquels sont positionn�s des pi�ces noires ou blanches
-	Pane board ;
-	
-	private Label player1ScoreLabel;
+    private Pane board;
+    private Label player1ScoreLabel;
     private Label player2ScoreLabel;
+    private Button resetButton;
+    private Label currentPlayerLabel;
+    private Label gameStatusLabel;
 
-	public View (EventHandler<MouseEvent> clicListener) {
-		super();
+    private EventHandler<MouseEvent> clickListener;
 
-		// les cases et le pi�ces sur le damier seront �cout�es par l'objet
-		// pass� en param�tre au constructeur
-		board = new Board(clicListener);
+    public View(EventHandler<MouseEvent> clickListener) {
+        super();
 
-		
-		// cr�ation d'un fond d'�cran qui contient le damier + les axes 
-		BorderPane checkersBoard = new BorderPane();	
+        this.clickListener = clickListener;
 
-		// la taille du damier est fonction de taille de la Scene
-		board.prefWidthProperty().bind(this.widthProperty());
-		board.prefHeightProperty().bind(this.heightProperty());
+        board = new Board(clickListener);
 
-		// ajout du damier au centre du fond d'�cran
-		checkersBoard.setCenter(board);
+        board.prefWidthProperty().bind(this.widthProperty());
+        board.prefHeightProperty().bind(this.heightProperty());
 
-		// ajout des axes sur les cot�s du damier
-		checkersBoard.setTop(createHorizontalAxis());
-		checkersBoard.setBottom(createHorizontalAxis());
-		checkersBoard.setLeft(createVerticalAxis());
-		checkersBoard.setRight(createVerticalAxis());
-
-		// ajout du fond d'�cran �la vue
-		this.setCenter(checkersBoard);
-
-		 // Initialiser les étiquettes de score
+        currentPlayerLabel = new Label("Tour du Joueur: Blanc");
+        gameStatusLabel = new Label("test");
         player1ScoreLabel = new Label("Score Joueur 1: 0");
         player2ScoreLabel = new Label("Score Joueur 2: 0");
 
-        // Ajouter les étiquettes de score à la vue
-        checkersBoard.setTop(player1ScoreLabel);
-        checkersBoard.setBottom(player2ScoreLabel);
-	}
+        VBox scoresBox = new VBox(10, player1ScoreLabel, player2ScoreLabel);
+        scoresBox.setAlignment(Pos.CENTER);
 
-	///////////////////////////////////////////////////////////////////////////////////// 
-	// M�thode invoqu�e depuis le Controller pour propager les d�placements
-	// effectu�s sur le model sur la vue
-	/////////////////////////////////////////////////////////////////////////////////////
-	
-	public void actionOnGui(InputViewData<Integer> dataToRefreshView) {
-		((Board)this.board).actionOnGui(dataToRefreshView);
-		
-	}
-	
-	//////////////////////////////////////////////////////////////////////////
-	
+        resetButton = new Button("Recommencer");
+        resetButton.setOnAction(resetHandler);
+        resetButton.getStyleClass().add("reset-button");
 
-	private GridPane createHorizontalAxis() {
-		GridPane pane = new GridPane();
-		pane.prefWidthProperty().bind(this.widthProperty());
-		for (char c = 'a'; c<='j'; c++){
-			Label label1 = new Label(String.valueOf(c));
-			label1.setAlignment(Pos.CENTER);
-			label1.prefWidthProperty().bind(pane.prefWidthProperty().divide(GuiConfig.SIZE));
-			pane.add(label1, c-'a', 0);
-		}
-		return pane;
-	}
+        VBox controlBox = new VBox(10, scoresBox, currentPlayerLabel, gameStatusLabel, resetButton);
+        controlBox.setPadding(new Insets(10));
+        controlBox.setAlignment(Pos.CENTER);
 
-	private GridPane createVerticalAxis() {
-		GridPane pane = new GridPane();
-		pane.prefHeightProperty().bind(this.heightProperty());
-		for (int c = 10; c>=1; c--){
-			Label label1 = new Label(String.valueOf(c));
-			label1.prefHeightProperty().bind(pane.prefHeightProperty().divide(GuiConfig.SIZE));
-			pane.add(label1, 0, 10-c+1);
-		}
-		return pane;
-	}
+        this.setCenter(board);
+        this.setTop(controlBox);
 
-	
-	public void updateScores(int player1Score, int player2Score) {
-        player1ScoreLabel.setText("Score Joueur 1: " + player1Score);
-        player2ScoreLabel.setText("Score Joueur 2: " + player2Score);
+        // Appliquer un style CSS à la vue
+        this.getStyleClass().add("view");
     }
+
+	 // Méthode invoquée depuis le Controller pour propager les déplacements effectués sur le model sur la vue
+	public void actionOnGui(InputViewData<Integer> dataToRefreshView) {
+	        ((Board) this.board).actionOnGui(dataToRefreshView);
+	        
+	        // Mise à jour de la couleur du joueur courant
+	        String color = dataToRefreshView.currentPlayerColor == PieceSquareColor.WHITE ? "Blanc" : "Noir";
+	        updateCurrentPlayer(color);
+	
+	        // Mise à jour des scores des joueurs
+	        updateScores(dataToRefreshView.whiteScore, dataToRefreshView.blackScore);
+	        
+	        // Mise à jour de l'état de la partie 
+	        updateGameStatus(dataToRefreshView.gameStatus);
+	}
+
+
+    public void updateScores(int player1Score, int player2Score) {
+        player1ScoreLabel.setText("Score joueur Blanc : " + player1Score);
+        player2ScoreLabel.setText("Score joueur Noir : " + player2Score);
+    }
+
+    public void updateCurrentPlayer(String color) {
+        currentPlayerLabel.setText("Tour du Joueur: " + color);
+    }
+    
+    public void updateGameStatus(GameStatus gameStatus) {
+        switch (gameStatus) {
+            case WHITE_WIN:
+                gameStatusLabel.setText("Le joueur Blanc a gagné !");
+                break;
+            case BLACK_WIN:
+                gameStatusLabel.setText("Le joueur Noir a gagné !");
+                break;
+            case DRAW:
+                gameStatusLabel.setText("Match nul !");
+                break;
+            case ONGOING:
+                gameStatusLabel.setText("Le jeu continue...");
+                break;
+        }
+    }
+
+    public void reset() {
+        // Réinitialise les scores
+        int player1Score = 0;
+        int player2Score = 0;
+        player1ScoreLabel.setText("Score joueur Blanc : " + player1Score);
+        player2ScoreLabel.setText("Score joueur Noir : " + player2Score);
+        ((Board) this.board).resetGame(clickListener);
+    }
+
+    EventHandler<ActionEvent> resetHandler = new EventHandler<ActionEvent>() {
+        @Override
+        public void handle(ActionEvent event) {
+            // code pour réinitialiser le jeu
+            reset();
+        }
+    };
+    
 }

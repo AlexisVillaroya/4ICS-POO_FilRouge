@@ -213,5 +213,36 @@ public class ModelImplementor {
 		}
 		return "Damier du model \n" + st;	
 	}
+	
+	public void reset() {
+		// Recréation de la collection de pièces
+		this.pieces = ModelFactory.createPieceModelCollection();
+	
+	}
+	
+	public boolean hasNoPieces(PieceSquareColor color) {
+	    for (PieceModel piece : this.pieces) {
+	        if (piece.getPieceColor() == color) {
+	            return false;
+	        }
+	    }
+	    return true;
+	}
+
+	public boolean noValidMoves(PieceSquareColor color) {
+	    return true;
+	}
+
+	// Placeholder methods. You will need to implement these based on your game's rules.
+	public boolean playersAgreeToDraw() {
+	    // Implement this based on your game's rules.
+	    return false;
+	}
+
+	public boolean repeatedPosition() {
+	    // Implement this based on your game's rules.
+	    return false;
+	}
+
     
 }

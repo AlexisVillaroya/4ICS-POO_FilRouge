@@ -136,5 +136,51 @@ class Board extends GridPane {
 		}
 
 	}
-
+	
+	public void resetGame(EventHandler<MouseEvent> clicListener) {
+		this.getChildren().clear(); // supprime toutes les pièces de l'échiquier
+		
+		int nbCol, nbLig;
+		nbCol = nbLig = GuiConfig.SIZE;
+	
+		BorderPane square = null;
+		ImageView piece = null;
+	
+		for (int ligne = 0; ligne < nbLig; ligne++){
+			for (int col = 0; col < nbCol; col++) {
+	
+				// cr�ation d'un BorderPane
+				square = GuiFactory.createSquare(col, ligne);
+	
+				// ajout d'un �couteur sur le carr�
+				square.setOnMouseClicked(clicListener);
+	
+				// taille des carr�s = taille de la fenetre / nombre de carr�s par lignes
+				square.prefWidthProperty().bind(this.prefWidthProperty().divide(nbCol));
+				square.prefHeightProperty().bind(this.prefHeightProperty().divide(nbLig));
+	
+				// ajout du carre sur le damier
+				this.add(square, col, ligne);
+	
+	
+				// cr�ation de la pi�ce uniquement si doit �tre sur cette case
+				piece = GuiFactory.createPiece(col, ligne);
+	
+				if (piece != null) {
+	
+					// ajout d'un �couteur de souris
+					piece.setOnMouseClicked(clicListener);
+	
+					// gestion de la taille et position de la pi�ce (au centre du carr�)
+					piece.fitWidthProperty().bind(square.widthProperty().divide(1.5));
+					piece.fitHeightProperty().bind(square.heightProperty().divide(1.5));
+					piece.xProperty().bind((square.widthProperty().subtract(piece.fitWidthProperty())).divide(2));
+					piece.yProperty().bind(square.heightProperty().subtract(piece.fitHeightProperty()).divide(2));
+	
+					// Ajout de la pi�ce sur le carr� noir
+					square.getChildren().add(piece);
+				}
+			}
+		}
+	}
 }

@@ -21,5 +21,4 @@ public interface BoardGame<T>  {
 	 * 		- �ventuellement les coordonn�es et la couleur du pion promus en dame, null sinon
 	 */
 	public OutputModelData<T> moveCapturePromote(T toMovePieceIndex, T targetSquareIndex);
-	
 }
