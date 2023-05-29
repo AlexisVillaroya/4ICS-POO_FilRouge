@@ -1,6 +1,8 @@
 package model;
 
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import controller.OutputModelData;
@@ -91,6 +93,7 @@ public class Model implements BoardGame<Coord> {
 					// ou si une rafle n'est pas possible alors changement de joueur 
 					System.out.println("RAFLE POSSIBLE : " + isRaflePossible(targetSquareCoord));
 			        System.out.println("CURRENT PLAYER : " + this.currentGamerColor);
+			        System.out.println("BEST RAFLE ROUTE : " + this.bestRafleRoute(targetSquareCoord));
 		            if (!isRaflePossible(targetSquareCoord) || toCapturePieceCoord == null) {
 		                this.switchGamer();
 		            }
@@ -304,6 +307,43 @@ public class Model implements BoardGame<Coord> {
 
 	    // Si aucune des mouvements possibles ne résulte en une rafle, retourne false.
 	    return false;
+	}
+	
+	private List<Coord> bestRafleRoute(Coord startCoord) {
+	    List<Coord> bestRoute = new ArrayList<>();
+	    findBestRoute(startCoord, new ArrayList<>(), bestRoute);
+	    return bestRoute;
+	}
+
+	private void findBestRoute(Coord current, List<Coord> currentRoute, List<Coord> bestRoute) {
+	    currentRoute.add(current);
+
+	    // Si la route actuelle est meilleure, la mettre à jour.
+	    if (currentRoute.size() > bestRoute.size()) {
+	        bestRoute.clear();
+	        bestRoute.addAll(currentRoute);
+	    }
+
+	    // Parcourir tous les mouvements possibles à partir de la position actuelle.
+	    List<Coord> nextMoves = getPotentialCaptureCoord(current); // Une méthode qui renvoie tous les mouvements valides qui capturent une pièce ennemie.
+	    for (Coord next : nextMoves) {
+	        if (!currentRoute.contains(next)) {
+	            findBestRoute(next, new ArrayList<>(currentRoute), bestRoute);
+	        }
+	    }
+	}
+
+	private List<Coord> getPotentialCaptureCoord(Coord start) {
+	    List<Coord> potentialCaptures = new ArrayList<>();
+	    for (int x = -2; x <= 2; x += 2) {
+	        for (int y = -2; y <= 2; y += 2) {
+	            Coord next = new Coord((char) (start.getColonne() + x), start.getLigne() + y);
+	            if (isRaflePossible(next)) {
+	                potentialCaptures.add(next);
+	            }
+	        }
+	    }
+	    return potentialCaptures;
 	}
 	
 	/**

@@ -27,6 +27,9 @@ public class View extends BorderPane {
     private Label currentPlayerLabel;
     private Label gameStatusLabel;
     private VBox controlBox;
+    private int player1TotalWins;
+    private int player2TotalWins;
+
 
     private EventHandler<MouseEvent> clickListener;
 
@@ -106,8 +109,8 @@ public class View extends BorderPane {
     }
 
     public void updateScores(int player1Score, int player2Score) {
-        player1ScoreLabel.setText("Score joueur Blanc : " + player1Score);
-        player2ScoreLabel.setText("Score joueur Noir : " + player2Score);
+        player1ScoreLabel.setText("Score joueur Blanc : " + player1Score + " | Victoires : " + player1TotalWins);
+        player2ScoreLabel.setText("Score joueur Noir : " + player2Score + " | Victoires : " + player2TotalWins);
     }
 
     public void updateCurrentPlayer(String color) {
@@ -115,12 +118,15 @@ public class View extends BorderPane {
     }
 
     public void updateGameStatus(GameStatus gameStatus) {
+        gameStatusLabel.setTextFill(Color.RED);
         switch (gameStatus) {
             case WHITE_WIN:
                 gameStatusLabel.setText("Le joueur Blanc a gagné !");
+                player1TotalWins++; // Incrémenter le total de victoires du joueur 1
                 break;
             case BLACK_WIN:
                 gameStatusLabel.setText("Le joueur Noir a gagné !");
+                player2TotalWins++; // Incrémenter le total de victoires du joueur 2
                 break;
             case DRAW:
                 gameStatusLabel.setText("Match nul !");
@@ -130,6 +136,7 @@ public class View extends BorderPane {
                 break;
         }
     }
+    
 
     public void reset() {
         // Réinitialise les scores
