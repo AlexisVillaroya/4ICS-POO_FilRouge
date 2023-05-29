@@ -23,6 +23,9 @@ public class View extends BorderPane {
 	// le damier compos� de carr�s noirs et blancs
 	// sur lesquels sont positionn�s des pi�ces noires ou blanches
 	Pane board ;
+	
+	private Label player1ScoreLabel;
+    private Label player2ScoreLabel;
 
 	public View (EventHandler<MouseEvent> clicListener) {
 		super();
@@ -51,8 +54,13 @@ public class View extends BorderPane {
 		// ajout du fond d'�cran �la vue
 		this.setCenter(checkersBoard);
 
+		 // Initialiser les étiquettes de score
+        player1ScoreLabel = new Label("Score Joueur 1: 0");
+        player2ScoreLabel = new Label("Score Joueur 2: 0");
 
-		
+        // Ajouter les étiquettes de score à la vue
+        checkersBoard.setTop(player1ScoreLabel);
+        checkersBoard.setBottom(player2ScoreLabel);
 	}
 
 	///////////////////////////////////////////////////////////////////////////////////// 
@@ -92,4 +100,8 @@ public class View extends BorderPane {
 	}
 
 	
+	public void updateScores(int player1Score, int player2Score) {
+        player1ScoreLabel.setText("Score Joueur 1: " + player1Score);
+        player2ScoreLabel.setText("Score Joueur 2: " + player2Score);
+    }
 }

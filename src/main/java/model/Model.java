@@ -91,7 +91,12 @@ public class Model implements BoardGame<Coord> {
 					// S'il n'y a pas eu de prise
 					// ou si une rafle n'est pas possible alors changement de joueur 
 					if (true) {	// TODO : Test � changer atelier 4
-						this.switchGamer();
+						 // Remplacer cette ligne par une vérification de rafle possible
+						System.out.println("RAFLE POSSIBLE : " + isRaflePossible(targetSquareCoord));
+				        System.out.println("CURRENT PLAYER : " + this.currentGamerColor);
+			            if (!isRaflePossible(targetSquareCoord) || toCapturePieceCoord == null) {
+			                this.switchGamer();
+			            }
 					}
 
 				}
@@ -240,10 +245,38 @@ public class Model implements BoardGame<Coord> {
 	}
 
 	private void switchGamer() {
-		this.currentGamerColor = (PieceSquareColor.WHITE).equals(this.currentGamerColor) ?
-				PieceSquareColor.BLACK : PieceSquareColor.WHITE;
-		
+            this.currentGamerColor = (PieceSquareColor.WHITE).equals(this.currentGamerColor) ?
+                    PieceSquareColor.BLACK : PieceSquareColor.WHITE;
+    }
+	
+	
+	/**
+	 * Checks if a rafle (multi-jump) is possible for a piece at a given coordinate.
+	 *
+	 * @param pieceCoord The coordinate of the piece to check.
+	 * @return true if a rafle is possible, false otherwise.
+	 */
+	private boolean isRaflePossible(Coord pieceCoord) {
+	    // If the piece at the specified coordinates is not of the current player's color, return false.
+	    if (this.implementor.getPieceColor(pieceCoord) != this.currentGamerColor) {
+	        return false;
+	    }
+	    
+	    // Get the possible coordinates for a rafle (a jump of two squares in any direction).
+	    List<Coord> targetCoords = this.implementor.getTargetCoordsInMultiJumpCase(pieceCoord);
+	    System.out.println(targetCoords);
+	    
+	    // For each target coordinate, check if it's possible to perform a rafle there.
+	    for (Coord targetCoord : targetCoords) {
+	        // If moving to the target coordinate is possible and there is a piece of the opposite color on the square to jump over, return true.
+	        Coord captureCoord = this.getToCapturePieceCoord(pieceCoord, targetCoord);
+	        if (this.isMovePiecePossible(pieceCoord, targetCoord, true) && captureCoord != null && this.implementor.getPieceColor(captureCoord) != this.currentGamerColor) {
+	            return true;
+	        }
+	    }
+	    
+	    // If none of the possible moves results in a rafle, return false.
+	    return false;
 	}
-
 
 }

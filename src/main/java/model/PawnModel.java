@@ -90,7 +90,5 @@ public class PawnModel extends AbstractPieceModel implements PieceModel, Promota
 		return targetCoords;
 	}
 
-	
-
 }
 

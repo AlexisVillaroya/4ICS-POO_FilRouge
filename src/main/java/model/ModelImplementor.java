@@ -1,6 +1,7 @@
 package model;
 
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -212,8 +213,5 @@ public class ModelImplementor {
 		}
 		return "Damier du model \n" + st;	
 	}
-
-
-
-
+    
 }

@@ -59,6 +59,5 @@ public class QueenModel extends AbstractPieceModel implements PieceModel {
 		return targetCoords;
 	}
 
-
 }
 
